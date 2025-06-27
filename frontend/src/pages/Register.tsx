@@ -44,7 +44,7 @@ const Register: React.FC = () => {
               <img src="/logo.png" className="h-12 w-12"></img>
             </div>
             <div className="flex items-center space-x-2">
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-blue-400 bg-clip-text text-transparent">
                 MutualTracker
               </h1>
             </div>
@@ -157,7 +157,7 @@ const Register: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-white to-gray-400 hover:from-white/90 hover:to-gray-500 text-black font-bold py-4 px-4 rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 border border-white shadow-lg hover:shadow-xl"
+              className="w-full bg-gradient-to-r from-white to-blue-400 hover:from-white/90 hover:to-blue-500 text-black font-bold py-4 px-4 rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 border border-white shadow-lg hover:shadow-xl"
             >
               {loading ? (
                 <LoadingSpinner size="sm" />
@@ -172,7 +172,7 @@ const Register: React.FC = () => {
               Already have an account?{" "}
               <Link
                 to="/login"
-                className="text-white font-bold hover:text-gray-200  transition-colors duration-300"
+                className="text-blue-300 font-bold hover:text-blue-400  transition-colors duration-300"
               >
                 Sign in
               </Link>

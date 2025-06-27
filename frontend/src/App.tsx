@@ -3,6 +3,7 @@ import "./App.css";
 import Login from "./pages/Login";
 import { AuthProvider } from "./contexts/AuthContext";
 import Register from "./pages/Register";
+import Landing from "./pages/Landing";
 
 function AppContext() {
   return (
@@ -13,7 +14,9 @@ function AppContext() {
         </Routes>
         <Routes>
           <Route path="/register" element={<Register />} />
-
+        </Routes>
+        <Routes>
+          <Route path="/" element={<Landing />} />
         </Routes>
       </Router>
     </>
