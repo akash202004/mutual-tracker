@@ -1,4 +1,4 @@
-import { Mail } from "lucide-react";
+import { Lock, Mail } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -62,7 +62,7 @@ const Login = () => {
 
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Mail className="w-5 h-5 text-gray-400" />
+                <Lock className="w-5 h-5 text-gray-400" />
                 </div>
                 <input
                   id="email"
@@ -70,7 +70,7 @@ const Login = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-12 pr-4 py-4 bg-black border-2 border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-white/40 focus:ring-2 focus:ring-white/10 transition-all duration-300"
-                  placeholder="Enter your email"
+                  placeholder="Enter your password"
                   required
                 />
               </div>
