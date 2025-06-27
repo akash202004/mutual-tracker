@@ -8,7 +8,6 @@ const Register: React.FC = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const { register, loading } = useAuth();
   const navigate = useNavigate();
@@ -17,8 +16,8 @@ const Register: React.FC = () => {
     e.preventDefault();
     setError(null);
 
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
+    if (!name || !email || !password) {
+      setError("All fields are required");
       return;
     }
 
@@ -40,7 +39,7 @@ const Register: React.FC = () => {
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <div className="flex items-center justify-center space-x-3 mb-6">
-          <div>
+            <div>
               <img src="/logo.png" className="h-12 w-12"></img>
             </div>
             <div className="flex items-center space-x-2">
@@ -121,29 +120,6 @@ const Register: React.FC = () => {
                   required
                   className="w-full pl-12 pr-4 py-4 bg-black border-2 border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-white/40 focus:ring-2 focus:ring-white/10 transition-all duration-300"
                   placeholder="Enter your password"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label
-                htmlFor="confirmPassword"
-                className="block text-sm font-medium text-gray-300 mb-3"
-              >
-                Confirm password
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Lock className="w-5 h-5 text-gray-400" />
-                </div>
-                <input
-                  id="confirmPassword"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                  className="w-full pl-12 pr-4 py-4 bg-black border-2 border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-white/40 focus:ring-2 focus:ring-white/10 transition-all duration-300"
-                  placeholder="Confirm your password"
                 />
               </div>
             </div>

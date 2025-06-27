@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Search, X, TrendingUp } from 'lucide-react';
+import React, { useState, useRef, useEffect } from "react";
+import { Search, X, TrendingUp } from "lucide-react";
 
 interface SearchBarProps {
   onSearch: (query: string) => void;
@@ -7,40 +7,43 @@ interface SearchBarProps {
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({ onSearch, loading }) => {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const searchRef = useRef<HTMLDivElement>(null);
 
   const popularSuggestions = [
-    'SBI Bluechip Fund',
-    'HDFC Top 100 Fund',
-    'ICICI Prudential Equity',
-    'Axis Bluechip Fund',
-    'Kotak Standard Multicap',
-    'Mirae Asset Large Cap',
-    'Nippon India Growth Fund',
-    'Franklin India Equity',
-    'DSP Equity Fund',
-    'Aditya Birla Sun Life Equity'
+    "SBI Bluechip Fund",
+    "HDFC Top 100 Fund",
+    "ICICI Prudential Equity",
+    "Axis Bluechip Fund",
+    "Kotak Standard Multicap",
+    "Mirae Asset Large Cap",
+    "Nippon India Growth Fund",
+    "Franklin India Equity",
+    "DSP Equity Fund",
+    "Aditya Birla Sun Life Equity",
   ];
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+      if (
+        searchRef.current &&
+        !searchRef.current.contains(event.target as Node)
+      ) {
         setShowSuggestions(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const handleInputChange = (value: string) => {
     setQuery(value);
-    
+
     if (value.trim().length > 0) {
-      const filtered = popularSuggestions.filter(suggestion =>
+      const filtered = popularSuggestions.filter((suggestion) =>
         suggestion.toLowerCase().includes(value.toLowerCase())
       );
       setSuggestions(filtered.slice(0, 6));
@@ -73,17 +76,19 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, loading }) => {
   };
 
   const handleClear = () => {
-    setQuery('');
+    setQuery("");
     setShowSuggestions(false);
   };
 
   return (
     <div ref={searchRef} className="w-full max-w-2xl mx-auto relative">
       <form onSubmit={handleSubmit}>
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-            <Search className="w-5 h-5 text-gray-400" />
-          </div>
+        <div className="relative flex items-center">
+          <span className="absolute left-0 pl-4 flex items-center h-full">
+            <Search
+              className="w-10 h-10 text-gray-400 mr-2"
+            />
+          </span>
           <input
             type="text"
             value={query}
@@ -121,7 +126,9 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, loading }) => {
                 className="w-full px-4 py-3 text-left text-white hover:bg-white/5 transition-colors duration-200 flex items-center space-x-3 group"
               >
                 <TrendingUp className="w-4 h-4 text-gray-400 group-hover:text-blue-400 transition-colors" />
-                <span className="group-hover:text-blue-400 transition-colors">{suggestion}</span>
+                <span className="group-hover:text-blue-400 transition-colors">
+                  {suggestion}
+                </span>
               </button>
             ))}
           </div>

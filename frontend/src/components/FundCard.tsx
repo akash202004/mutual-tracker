@@ -20,7 +20,7 @@ const FundCard: React.FC<FundCardProps> = ({ fund }) => {
       className="bg-black border-2 border-white/20 rounded-xl p-6 hover:border-white/40 hover:bg-white/5 transition-all duration-300 cursor-pointer group backdrop-blur-sm shadow-lg hover:shadow-2xl"
     >
       <div className="flex items-start justify-between mb-4">
-        <h3 className="text-lg font-semibold text-white group-hover:text-blue-400 transition-colors duration-300 line-clamp-2 leading-tight">
+        <h3 className="text-lg font-semibold text-white group-hover:text-blue-200 transition-colors duration-300 line-clamp-2 leading-tight">
           {fund.schemeName}
         </h3>
         <div className="p-2 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-lg border border-green-500/30 group-hover:scale-110 transition-transform duration-300">
@@ -39,7 +39,7 @@ const FundCard: React.FC<FundCardProps> = ({ fund }) => {
         <div className="pt-2 border-t border-white/10 flex justify-center w-full">
           <button
             type="button"
-            className="w-full px-3 py-1 bg-blue-500 rounded-xl text-white font-semibold hover:bg-blue-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300"
+            className="w-full px-3 py-1 bg-gradient-to-r from-white to-blue-400 hover:from-white/90 hover:to-blue-500 rounded-lg text-black font-bold transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300 border border-white"
             tabIndex={0}
             aria-label="Click to get more details"
           >
