@@ -36,7 +36,7 @@ const Landing: React.FC = () => {
   };
 
   return (
-    <div className="space-y-12 bg-black">
+    <div className="space-y-12">
       {/* my hero section */}
       <div className="text-center space-y-8 py-12">
         <div className="flex items-center justify-center space-x-4 mb-6">
