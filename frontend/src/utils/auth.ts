@@ -1,10 +1,16 @@
 import type { User } from "../types";
 
-const API_BASE = "http://localhost:3000/api";
+const API_BASE = "http://localhost:5000/api";
+
+interface AuthResponse {
+  user: User;
+  token: string;
+  message: string;
+}
 
 export const authApi = {
-  async login(email: string, password: string): Promise<User> {
-    const response = await fetch(`${API_BASE}/login`, {
+  async login(email: string, password: string): Promise<AuthResponse> {
+    const response = await fetch(`${API_BASE}/users/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -18,11 +24,15 @@ export const authApi = {
     }
 
     const data = await response.json();
-    return data.user as User;
+    return data as AuthResponse;
   },
 
-  async register(email: string, password: string, name: string): Promise<User> {
-    const response = await fetch(`${API_BASE}/register`, {
+  async register(
+    email: string,
+    password: string,
+    name: string
+  ): Promise<AuthResponse> {
+    const response = await fetch(`${API_BASE}/users/register`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -35,7 +45,7 @@ export const authApi = {
     }
 
     const data = await response.json();
-    return data.user as User;
+    return data as AuthResponse;
   },
 };
 

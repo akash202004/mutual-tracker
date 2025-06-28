@@ -2,35 +2,65 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock, User } from "lucide-react";
 import { useAuth } from "../contexts/useAuth";
+import { useToast } from "../hooks/useToast";
 import LoadingSpinner from "../components/LoadingSpinner";
 
 const Register: React.FC = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
   const { register, loading } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
 
-    if (!name || !email || !password) {
-      setError("All fields are required");
+    // Validation
+    if (!name.trim()) {
+      showToast('error', 'Please enter your full name');
+      return;
+    }
+
+    if (!email.trim()) {
+      showToast('error', 'Please enter your email address');
+      return;
+    }
+
+    if (!password.trim()) {
+      showToast('error', 'Please enter your password');
       return;
     }
 
     if (password.length < 6) {
-      setError("Password must be at least 6 characters long");
+      showToast('error', 'Password must be at least 6 characters long');
+      return;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      showToast('error', 'Please enter a valid email address');
       return;
     }
 
     try {
       await register(name, email, password);
+      showToast('success', 'Account created successfully! Welcome to MutualTracker!');
       navigate("/");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Registration failed");
+      const errorMessage = err instanceof Error ? err.message : "Registration failed";
+      
+      // Show specific toast messages based on error
+      if (errorMessage.includes('already exists') || errorMessage.includes('duplicate')) {
+        showToast('error', 'An account with this email already exists. Please try logging in instead.');
+      } else if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
+        showToast('error', 'Network error. Please check your connection and try again.');
+      } else if (errorMessage.includes('validation')) {
+        showToast('error', 'Please check your input and try again.');
+      } else {
+        showToast('error', errorMessage);
+      }
     }
   };
 
@@ -40,7 +70,7 @@ const Register: React.FC = () => {
         <div className="text-center">
           <div className="flex items-center justify-center space-x-3 mb-6">
             <div>
-              <img src="/logo.png" className="h-12 w-12"></img>
+              <img src="/logo.png" className="h-12 w-12" alt="Logo" />
             </div>
             <div className="flex items-center space-x-2">
               <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-blue-400 bg-clip-text text-transparent">
@@ -124,16 +154,10 @@ const Register: React.FC = () => {
               </div>
             </div>
 
-            {error && (
-              <div className="bg-red-500/10 border-2 border-red-500/30 rounded-xl p-4 backdrop-blur-sm">
-                <p className="text-red-400 text-sm font-medium">{error}</p>
-              </div>
-            )}
-
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-white to-blue-400 hover:from-white/90 hover:to-blue-500 text-black font-bold py-4 px-4 rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 border border-white shadow-lg hover:shadow-xl"
+              className="w-full bg-gradient-to-r from-white to-blue-400 hover:from-white/90 hover:to-blue-500 text-black font-bold py-4 px-4 rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 border border-white shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <LoadingSpinner size="sm" />
@@ -148,7 +172,7 @@ const Register: React.FC = () => {
               Already have an account?{" "}
               <Link
                 to="/login"
-                className="text-blue-300 font-bold hover:text-blue-400  transition-colors duration-300"
+                className="text-blue-300 font-bold hover:text-blue-400 transition-colors duration-300"
               >
                 Sign in
               </Link>

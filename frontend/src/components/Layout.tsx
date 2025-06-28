@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Search, Heart, LogOut, User } from "lucide-react";
+import { Heart, LogOut, User } from "lucide-react";
 import { useAuth } from "../contexts/useAuth";
 
 interface LayoutProps {
@@ -39,17 +39,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <div className="flex items-center space-x-8">
               {user ? (
                 <>
-                  <Link
-                    to="/"
-                    className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 border-2 ${
-                      isActive("/")
-                        ? "bg-white/10 text-white border-white/30 shadow-lg"
-                        : "text-gray-300 hover:text-white hover:bg-white/5 border-white/10 hover:border-white/20"
-                    }`}
-                  >
-                    <Search className="w-4 h-4" />
-                    <span>Search</span>
-                  </Link>
                   <Link
                     to="/saved"
                     className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 border-2 ${

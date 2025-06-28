@@ -2,24 +2,58 @@ import { Lock, Mail } from "lucide-react";
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/useAuth";
+import { useToast } from "../hooks/useToast";
 import LoadingSpinner from "../components/LoadingSpinner";
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
   const { login, loading } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
 
-  const handlesubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
+
+    // Validation
+    if (!email.trim()) {
+      showToast("error", "Please enter your email address");
+      return;
+    }
+
+    if (!password.trim()) {
+      showToast("error", "Please enter your password");
+      return;
+    }
+
+    if (password.length < 6) {
+      showToast("error", "Password must be at least 6 characters long");
+      return;
+    }
 
     try {
       await login(email, password);
+      showToast("success", "Login successful! Welcome back!");
       navigate("/");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed");
+      const errorMessage = err instanceof Error ? err.message : "Login failed";
+
+      // Show specific toast messages based on error
+      if (errorMessage.includes("Invalid credentials")) {
+        showToast("error", "Invalid email or password. Please try again.");
+      } else if (errorMessage.includes("User not found")) {
+        showToast("error", "No account found with this email address.");
+      } else if (
+        errorMessage.includes("network") ||
+        errorMessage.includes("fetch")
+      ) {
+        showToast(
+          "error",
+          "Network error. Please check your connection and try again."
+        );
+      } else {
+        showToast("error", errorMessage);
+      }
     }
   };
 
@@ -29,7 +63,7 @@ const Login: React.FC = () => {
         <div className="text-center">
           <div className="flex items-center justify-center space-x-3 mb-6">
             <div>
-              <img src="/logo.png" className="h-12 w-12"></img>
+              <img src="/logo.png" className="h-12 w-12" alt="Logo" />
             </div>
             <div className="flex items-center space-x-2">
               <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-blue-400 bg-clip-text text-transparent">
@@ -43,7 +77,7 @@ const Login: React.FC = () => {
         </div>
 
         <div className="bg-black border-2 border-white/20 rounded-xl p-8 backdrop-blur-sm shadow-2xl">
-          <form className="space-y-6" onSubmit={handlesubmit}>
+          <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label
                 htmlFor="email"
@@ -70,7 +104,7 @@ const Login: React.FC = () => {
 
             <div>
               <label
-                htmlFor="email"
+                htmlFor="password"
                 className="block text-sm font-medium text-gray-300 mb-3"
               >
                 Password
@@ -81,8 +115,8 @@ const Login: React.FC = () => {
                   <Lock className="w-5 h-5 text-gray-400" />
                 </div>
                 <input
-                  id="email"
-                  type="email"
+                  id="password"
+                  type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-12 pr-4 py-4 bg-black border-2 border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-white/40 focus:ring-2 focus:ring-white/10 transition-all duration-300"
@@ -92,16 +126,10 @@ const Login: React.FC = () => {
               </div>
             </div>
 
-            {error && (
-              <div className="bg-red-500/10 border-2 border-red-500/30 roundex-xl p-4 backdrop-blur-sm">
-                <p className="text-red-400 text-sm font-medium">{error}</p>
-              </div>
-            )}
-
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-white to-blue-400 hover:from-white/90 hover:to-blue-500 text-black font-bold py-4 px-4 rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 border border-white shadow-lg hover:shadow-xl"
+              className="w-full bg-gradient-to-r from-white to-blue-400 hover:from-white/90 hover:to-blue-500 text-black font-bold py-4 px-4 rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 border border-white shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? <LoadingSpinner size="sm" /> : <span>Sign In</span>}
             </button>
@@ -119,7 +147,7 @@ const Login: React.FC = () => {
                 Don't have an account?{" "}
                 <Link
                   to="/register"
-                  className="text-blue-300 font-bold hover:text-blue-400  transition-colors duration-300"
+                  className="text-blue-300 font-bold hover:text-blue-400 transition-colors duration-300"
                 >
                   Sign up
                 </Link>

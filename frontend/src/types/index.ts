@@ -47,3 +47,5 @@ export interface AuthContextType {
   logout: () => void;
   loading: boolean;
 }
+
+export type ToastType = 'success' | 'error' | 'warning' | 'info';

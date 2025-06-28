@@ -14,7 +14,6 @@ import {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-
 interface AuthProviderProps {
   children: ReactNode;
 }
@@ -24,18 +23,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
-    const storeUser = getStoreduser();
-    if (storeUser) {
-      setUser(storeUser);
+    const storedUser = getStoreduser();
+    if (storedUser) {
+      setUser(storedUser);
     }
   }, []);
 
   const login = async (email: string, password: string): Promise<void> => {
     setLoading(true);
     try {
-      const userData = await authApi.login(email, password);
-      setUser(userData);
-      storeUser(userData);
+      const response = await authApi.login(email, password);
+      setUser(response.user);
+      storeUser(response.user);
+      // Store the token
+      if (response.token) {
+        localStorage.setItem("token", response.token);
+      }
     } catch (error) {
       console.error("Login error:", error);
       throw new Error("Login failed. Please check your credentials.");
@@ -51,9 +54,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   ): Promise<void> => {
     setLoading(true);
     try {
-      const userData = await authApi.register(email, password, name);
-      setUser(userData);
-      storeUser(userData);
+      const response = await authApi.register(email, password, name);
+      setUser(response.user);
+      storeUser(response.user);
+      // Store the token
+      if (response.token) {
+        localStorage.setItem("token", response.token);
+      }
     } catch (error) {
       console.error("Registration error:", error);
       throw new Error("Registration failed. Please try again.");
@@ -65,6 +72,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = (): void => {
     setUser(null);
     removeStoredUser();
+    // Remove the token
+    localStorage.removeItem("token");
   };
 
   const value: AuthContextType = {
