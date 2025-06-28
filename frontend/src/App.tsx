@@ -13,7 +13,7 @@ import FundDetail from "./pages/FundDetail";
 import { useAuth } from "./contexts/useAuth";
 import SaveFunds from "./pages/SaveFunds";
 import { AuthProvider } from "./contexts/AuthContext";
-import { ToastProvider } from "./contexts/ToastContext";
+import { ToastProvider } from "./contexts/ToastContext.tsx";
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
   children,
