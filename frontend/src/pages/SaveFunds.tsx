@@ -90,8 +90,8 @@ const SavedFunds: React.FC = () => {
   return (
     <div className="space-y-8">
       <div className="flex items-center space-x-4 bg-black border-2 border-white/20 rounded-xl p-6 backdrop-blur-sm">
-        <div className="p-3 bg-gradient-to-br from-red-500/20 to-pink-500/20 rounded-xl border border-red-500/30">
-          <Heart className="w-8 h-8 text-red-400 fill-current" />
+        <div className="p-3 bg-gradient-to-br from-blue-500/20 to-pink-500/20 rounded-xl border border-blue-500/30">
+          <Heart className="w-8 h-8 text-blue-400 fill-current" />
         </div>
         <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
           Saved Mutual Funds
@@ -171,7 +171,7 @@ const SavedFunds: React.FC = () => {
                       <span>Saved on</span>
                     </span>
                     <span className="text-sm text-gray-300 font-medium">
-                      {new Date(fund.savedAt).toLocaleDateString()}
+                      {fund.savedAt ? new Date(fund.savedAt).toLocaleDateString() : "Unknown"}
                     </span>
                   </div>
                 </div>

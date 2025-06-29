@@ -7,7 +7,7 @@ import React, {
 import type { AuthContextType, User } from "../types";
 import {
   authApi,
-  getStoreduser,
+  getStoredUser,
   storeUser,
   removeStoredUser,
 } from "../utils/auth";
@@ -23,7 +23,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
-    const storedUser = getStoreduser();
+    const storedUser = getStoredUser();
     if (storedUser) {
       setUser(storedUser);
     }

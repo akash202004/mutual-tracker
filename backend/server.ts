@@ -38,12 +38,27 @@ const connectDB = async () => {
   try {
     await mongoose.connect(MONGODB_URI);
     console.log("✅ Connected to MongoDB");
-  } catch (error) {
-    console.error("❌ MongoDB connection error:", error);
+  } catch (error: any) {
+    console.error("❌ MongoDB connection error:", error.message);
+
+    if (error.message.includes("IP whitelist")) {
+      console.log("🔧 Solution: Update IP whitelist in MongoDB Atlas");
+      console.log("   1. Go to MongoDB Atlas Dashboard");
+      console.log("   2. Navigate to Network Access");
+      console.log("   3. Add your current IP address");
+      console.log("   4. Or temporarily add 0.0.0.0/0 for development");
+    } else if (error.message.includes("authentication")) {
+      console.log("🔧 Solution: Check your MongoDB credentials");
+      console.log("   1. Verify username and password in MONGODB_URI");
+      console.log("   2. Make sure the user has proper permissions");
+    } else if (error.message.includes("ENOTFOUND")) {
+      console.log("🔧 Solution: Check your MongoDB connection string");
+      console.log("   1. Verify the cluster name and hostnames");
+      console.log("   2. Make sure your cluster is active");
+    }
+
     console.log("⚠️  Server will continue without database connection");
-    console.log(
-      "💡 To fix this, make sure MongoDB is running or use MongoDB Atlas"
-    );
+    console.log("💡 Check MONGODB_SETUP.md for detailed instructions");
   }
 };
 

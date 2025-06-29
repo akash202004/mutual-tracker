@@ -1,7 +1,7 @@
 import type { MutualFund, MutualFundDetail, SavedFund } from "../types";
 
 const MF_API_BASE = "https://api.mfapi.in/mf";
-const BACKEND_API_BASE = "http://localhost:5000/api/";
+const BACKEND_API_BASE = "http://localhost:5000/api";
 
 export const mutualFundsApi = {
   async searchFunds(query: string): Promise<MutualFund[]> {
@@ -67,12 +67,66 @@ export const savedFundsApi = {
     }
   },
 
+  async getCurrentUserId(): Promise<string | null> {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        return null;
+      }
+
+      const response = await fetch(
+        `${BACKEND_API_BASE}/users/current-user-id`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          return null;
+        }
+        throw new Error("Failed to get current user ID");
+      }
+
+      const result = await response.json();
+      return result.userId || null;
+    } catch (err) {
+      console.error("Error getting current user ID:", err);
+      return null;
+    }
+  },
+
+  async saveFundWithUserCheck(fund: Omit<SavedFund, "userId">): Promise<void> {
+    try {
+      const userId = await this.getCurrentUserId();
+      if (!userId) {
+        throw new Error("User not authenticated");
+      }
+
+      console.log("Current user ID:", userId);
+
+      await this.saveFund(fund);
+
+      console.log("Fund saved successfully for user:", userId);
+    } catch (err) {
+      console.error("Error in saveFundWithUserCheck:", err);
+      throw err;
+    }
+  },
+
   async saveFund(fund: SavedFund): Promise<void> {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
         throw new Error("User not authenticated");
       }
+
+      console.log("API: Saving fund with data:", fund);
+      console.log("API: schemeCode:", fund.schemeCode);
+      console.log("API: schemeName:", fund.schemeName);
 
       const response = await fetch(`${BACKEND_API_BASE}/saved-funds`, {
         method: "POST",
@@ -85,6 +139,7 @@ export const savedFundsApi = {
 
       if (!response.ok) {
         const error = await response.json();
+        console.error("API: Backend error response:", error);
         throw new Error(error.message || "Failed to save fund");
       }
     } catch (err) {

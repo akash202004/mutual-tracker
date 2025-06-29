@@ -36,9 +36,10 @@ export interface MutualFundDetail extends MutualFund {
 export interface SavedFund {
   schemeCode: string;
   schemeName: string;
-  savedAt: string;
   currentNav?: string;
+  savedAt?: string;
 }
+
 
 export interface AuthContextType {
   user: User | null;
@@ -48,4 +49,4 @@ export interface AuthContextType {
   loading: boolean;
 }
 
-export type ToastType = 'success' | 'error' | 'warning' | 'info';
+export type ToastType = "success" | "error" | "warning" | "info";

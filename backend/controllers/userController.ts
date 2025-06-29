@@ -102,3 +102,22 @@ export const getUserProfile = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+// Get current user ID
+export const getCurrentUserId = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      res.status(401).json({ message: "User not authenticated" });
+      return;
+    }
+
+    res.json({
+      success: true,
+      userId: userId,
+    });
+  } catch (error) {
+    console.error("Get current user ID error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};

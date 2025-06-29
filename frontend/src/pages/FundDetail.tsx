@@ -7,6 +7,32 @@ import LoadingSpinner from "../components/LoadingSpinner";
 import ErrorMessage from "../components/ErrorMessage";
 import type { MutualFundDetail, SavedFund } from "../types";
 
+// Helper function to safely parse dates
+const parseDate = (dateString: string | undefined): string => {
+  if (!dateString) return "N/A";
+
+  try {
+    // Handle DD-MM-YYYY format (like "06-05-2008")
+    if (dateString.includes("-") && dateString.split("-")[0].length === 2) {
+      const [day, month, year] = dateString.split("-");
+      const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      if (isNaN(date.getTime())) {
+        return "Invalid Date";
+      }
+      return date.toLocaleDateString();
+    }
+
+    // Handle other date formats
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return "Invalid Date";
+    }
+    return date.toLocaleDateString();
+  } catch {
+    return "Invalid Date";
+  }
+};
+
 const FundDetail: React.FC = () => {
   const { schemeCode } = useParams<{ schemeCode: string }>();
   const [fundDetail, setFundDetail] = useState<MutualFundDetail | null>(null);
@@ -59,19 +85,33 @@ const FundDetail: React.FC = () => {
 
     setSaving(true);
     try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        showToast("error", "Please login to save funds");
+        navigate("/login");
+        return;
+      }
+
+      const latestNav = fundDetail.data?.[0]?.nav || fundDetail.nav || "0";
+
+      // Extract schemeCode and schemeName with fallbacks
+      const fundSchemeCode =
+        fundDetail.schemeCode || fundDetail.meta?.scheme_code || schemeCode;
+      const fundSchemeName =
+        fundDetail.schemeName || fundDetail.meta?.scheme_name || "Unknown Fund";
+
       const fundToSave: SavedFund = {
-        schemeCode: fundDetail.schemeCode,
-        schemeName: fundDetail.schemeName,
+        schemeCode: fundSchemeCode,
+        schemeName: fundSchemeName,
+        currentNav: String(latestNav),
         savedAt: new Date().toISOString(),
-        currentNav: fundDetail.nav,
       };
 
+      console.log("Saving fund:", fundToSave);
       await savedFundsApi.saveFund(fundToSave);
+
       setIsSaved(true);
-      showToast(
-        "success",
-        "Fund saved successfully! You can view it in your saved funds."
-      );
+      showToast("success", "Fund saved successfully!");
     } catch (err) {
       console.error("Error saving fund:", err);
       const errorMessage =
@@ -194,7 +234,7 @@ const FundDetail: React.FC = () => {
               ₹{latestNav}
             </div>
             <div className="text-sm text-gray-400">
-              As of {new Date(navDate).toLocaleDateString()}
+              As of {parseDate(navDate)}
             </div>
           </div>
         </div>
@@ -232,9 +272,7 @@ const FundDetail: React.FC = () => {
               <span className="text-gray-400">Start Date</span>
               <span className="text-white font-medium">
                 {fundDetail.meta?.scheme_start_date?.date
-                  ? new Date(
-                      fundDetail.meta.scheme_start_date.date
-                    ).toLocaleDateString()
+                  ? parseDate(fundDetail.meta.scheme_start_date.date)
                   : "N/A"}
               </span>
             </div>
@@ -257,7 +295,7 @@ const FundDetail: React.FC = () => {
                 <div className="flex items-center space-x-3">
                   <div className="w-2 h-2 bg-green-400 rounded-full"></div>
                   <span className="text-gray-300 font-medium">
-                    {new Date(item.date).toLocaleDateString()}
+                    {parseDate(item.date)}
                   </span>
                 </div>
                 <span className="text-lg font-bold text-green-400">

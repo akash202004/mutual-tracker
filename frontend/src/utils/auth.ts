@@ -49,13 +49,18 @@ export const authApi = {
   },
 };
 
-export const getStoreduser = (): User | null => {
-  const stored = localStorage.getItem("user");
-  return stored ? JSON.parse(stored) : null;
-};
-
 export const storeUser = (user: User): void => {
   localStorage.setItem("user", JSON.stringify(user));
+};
+
+export const getStoredUser = (): User | null => {
+  try {
+    const userStr = localStorage.getItem("user");
+    return userStr ? JSON.parse(userStr) : null;
+  } catch (error) {
+    console.error("Error parsing stored user:", error);
+    return null;
+  }
 };
 
 export const removeStoredUser = (): void => {

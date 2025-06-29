@@ -13,11 +13,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, loading }) => {
   const searchRef = useRef<HTMLDivElement>(null);
 
   const popularSuggestions = [
-    "SBI Bluechip Fund",
-    "HDFC Top 100 Fund",
     "ICICI Prudential Equity",
-    "Axis Bluechip Fund",
-    "Kotak Standard Multicap",
     "Mirae Asset Large Cap",
     "Nippon India Growth Fund",
     "Franklin India Equity",
