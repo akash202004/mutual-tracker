@@ -4,19 +4,21 @@ import { SavedFund } from "../models/SavedFund";
 // Get all saved funds for a user
 export const getSavedFunds = async (req: Request, res: Response) => {
   const userId = req.user?.userId;
-  if (!userId)
-    return res.status(401).json({ message: "User not authenticated" });
+  if (!userId) {
+    res.status(401).json({ message: "User not authenticated" });
+    return;
+  }
 
   try {
     const savedFunds = await SavedFund.find({ userId }).sort({ savedAt: -1 });
-    return res.json({
+    res.json({
       success: true,
       data: savedFunds,
       count: savedFunds.length,
     });
   } catch (error) {
     console.error("Get saved funds error:", error);
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
       message: "Failed to fetch saved funds",
     });
@@ -55,10 +57,11 @@ export const saveFund = async (req: Request, res: Response) => {
 
     const alreadySaved = await SavedFund.findOne({ userId, schemeCode });
     if (alreadySaved) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: "Fund is already saved",
       });
+      return;
     }
 
     const savedFund = await SavedFund.create({
@@ -69,14 +72,14 @@ export const saveFund = async (req: Request, res: Response) => {
       savedAt: new Date(),
     });
 
-    return res.status(201).json({
+    res.status(201).json({
       success: true,
       message: "Fund saved successfully",
       data: savedFund,
     });
   } catch (error: any) {
     console.error("Save fund error:", error);
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
       message: "Failed to save fund",
     });
@@ -88,34 +91,38 @@ export const removeFund = async (req: Request, res: Response) => {
   const userId = req.user?.userId;
   const { schemeCode } = req.params;
 
-  if (!userId)
-    return res.status(401).json({ message: "User not authenticated" });
+  if (!userId) {
+    res.status(401).json({ message: "User not authenticated" });
+    return;
+  }
 
   if (!schemeCode) {
-    return res.status(400).json({
+    res.status(400).json({
       success: false,
       message: "Scheme code is required",
     });
+    return;
   }
 
   try {
     const deleted = await SavedFund.findOneAndDelete({ userId, schemeCode });
 
     if (!deleted) {
-      return res.status(404).json({
+      res.status(404).json({
         success: false,
         message: "Saved fund not found",
       });
+      return;
     }
 
-    return res.json({
+    res.json({
       success: true,
       message: "Fund removed successfully",
       data: deleted,
     });
   } catch (error) {
     console.error("Remove fund error:", error);
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
       message: "Failed to remove fund",
     });
@@ -127,26 +134,29 @@ export const isFundSaved = async (req: Request, res: Response) => {
   const userId = req.user?.userId;
   const { schemeCode } = req.params;
 
-  if (!userId)
-    return res.status(401).json({ message: "User not authenticated" });
+  if (!userId) {
+    res.status(401).json({ message: "User not authenticated" });
+    return;
+  }
 
   if (!schemeCode) {
-    return res.status(400).json({
+    res.status(400).json({
       success: false,
       message: "Scheme code is required",
     });
+    return;
   }
 
   try {
     const savedFund = await SavedFund.findOne({ userId, schemeCode });
-    return res.json({
+    res.json({
       success: true,
       isSaved: !!savedFund,
       data: savedFund || null,
     });
   } catch (error) {
     console.error("Check fund saved error:", error);
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
       message: "Failed to check fund status",
     });
@@ -159,14 +169,17 @@ export const updateFundNav = async (req: Request, res: Response) => {
   const { schemeCode } = req.params;
   const { currentNav } = req.body;
 
-  if (!userId)
-    return res.status(401).json({ message: "User not authenticated" });
+  if (!userId) {
+    res.status(401).json({ message: "User not authenticated" });
+    return;
+  }
 
   if (!schemeCode || !currentNav) {
-    return res.status(400).json({
+    res.status(400).json({
       success: false,
       message: "Scheme code and current NAV are required",
     });
+    return;
   }
 
   try {
@@ -177,20 +190,21 @@ export const updateFundNav = async (req: Request, res: Response) => {
     );
 
     if (!updated) {
-      return res.status(404).json({
+      res.status(404).json({
         success: false,
         message: "Saved fund not found",
       });
+      return;
     }
 
-    return res.json({
+    res.json({
       success: true,
       message: "Fund NAV updated successfully",
       data: updated,
     });
   } catch (error) {
     console.error("Update fund NAV error:", error);
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
       message: "Failed to update fund NAV",
     });
