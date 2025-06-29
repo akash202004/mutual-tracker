@@ -1,7 +1,7 @@
 import type { MutualFund, MutualFundDetail, SavedFund } from "../types";
 
-const MF_API_BASE = "https://api.mfapi.in/mf";
-const BACKEND_API_BASE = "http://localhost:5000/api";
+const MF_API_BASE = import.meta.env.VITE_MF;
+const BACKEND_API_BASE = import.meta.env.VITE_BASE;
 
 export const mutualFundsApi = {
   async searchFunds(query: string): Promise<MutualFund[]> {
