@@ -59,8 +59,12 @@ const Landing: React.FC = () => {
       </div>
 
       {/* Search bar */}
-      <div className="space-y-8">
-        <SearchBar onSearch={handleSearch} onClear={handleClearSearch} loading={loading} />
+      <div className="space-y-8 z-10 pb-40">
+        <SearchBar
+          onSearch={handleSearch}
+          onClear={handleClearSearch}
+          loading={loading}
+        />
 
         {!hasSearched && (
           <div className="text-center space-y-6">
