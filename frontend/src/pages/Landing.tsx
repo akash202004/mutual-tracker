@@ -28,6 +28,12 @@ const Landing: React.FC = () => {
     }
   };
 
+  const handleClearSearch = () => {
+    setFunds([]);
+    setHasSearched(false);
+    setError(null);
+  };
+
   const handleRetry = () => {
     setError(null);
     setHasSearched(false);
@@ -35,8 +41,8 @@ const Landing: React.FC = () => {
   };
 
   return (
-    <div className="space-y-12 ">
-      {/* my hero section */}
+    <div className="space-y-12">
+      {/* Hero section */}
       <div className="text-center space-y-8 py-12">
         <div className="flex items-center justify-center space-x-4 mb-6">
           <div className="flex items-center space-x-2">
@@ -52,9 +58,9 @@ const Landing: React.FC = () => {
         </p>
       </div>
 
-      {/* my searching bar*/}
+      {/* Search bar */}
       <div className="space-y-8">
-        <SearchBar onSearch={handleSearch} loading={loading} />
+        <SearchBar onSearch={handleSearch} onClear={handleClearSearch} loading={loading} />
 
         {!hasSearched && (
           <div className="text-center space-y-6">
@@ -76,15 +82,17 @@ const Landing: React.FC = () => {
         )}
       </div>
 
-      {/* my mutual fund result */}
+      {/* my Loading */}
       {loading && (
         <div className="flex justify-center py-16">
           <LoadingSpinner size="lg" text="Searching mutual funds..." />
         </div>
       )}
 
+      {/* my Error */}
       {error && <ErrorMessage message={error} onRetry={handleRetry} />}
 
+      {/* No results */}
       {hasSearched && !loading && !error && funds.length === 0 && (
         <div className="text-center py-16 bg-black border-2 border-white/20 rounded-xl backdrop-blur-sm">
           <p className="text-gray-400 text-xl">
@@ -93,6 +101,7 @@ const Landing: React.FC = () => {
         </div>
       )}
 
+      {/* my Results */}
       {funds.length > 0 && (
         <div className="space-y-8">
           <div className="flex items-center justify-between bg-black border-2 border-white/20 rounded-xl p-6 backdrop-blur-sm">

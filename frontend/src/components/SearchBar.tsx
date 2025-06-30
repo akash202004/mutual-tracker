@@ -1,25 +1,21 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Search, X, TrendingUp } from "lucide-react";
+import type { MutualFund } from "../types";
+import { mutualFundsApi } from "../utils/api";
 
 interface SearchBarProps {
   onSearch: (query: string) => void;
+  onClear?: () => void;
   loading?: boolean;
 }
 
-const SearchBar: React.FC<SearchBarProps> = ({ onSearch, loading }) => {
+const SearchBar: React.FC<SearchBarProps> = ({ onSearch, onClear, loading }) => {
   const [query, setQuery] = useState("");
+  const [suggestions, setSuggestions] = useState<MutualFund[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
-  const searchRef = useRef<HTMLDivElement>(null);
+  const [typingTimeout, setTypingTimeout] = useState<number | null>(null);
 
-  const popularSuggestions = [
-    "ICICI Prudential Equity",
-    "Mirae Asset Large Cap",
-    "Nippon India Growth Fund",
-    "Franklin India Equity",
-    "DSP Equity Fund",
-    "Aditya Birla Sun Life Equity",
-  ];
+  const searchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -38,16 +34,24 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, loading }) => {
   const handleInputChange = (value: string) => {
     setQuery(value);
 
-    if (value.trim().length > 0) {
-      const filtered = popularSuggestions.filter((suggestion) =>
-        suggestion.toLowerCase().includes(value.toLowerCase())
-      );
-      setSuggestions(filtered.slice(0, 6));
-      setShowSuggestions(true);
-    } else {
-      setSuggestions(popularSuggestions.slice(0, 6));
-      setShowSuggestions(false);
-    }
+    if (typingTimeout) clearTimeout(typingTimeout);
+
+    const timeout = window.setTimeout(async () => {
+      if (value.trim().length > 0) {
+        try {
+          const results = await mutualFundsApi.searchFunds(value);
+          setSuggestions(results.slice(0, 10));
+          setShowSuggestions(true);
+        } catch (err) {
+          console.error("Error fetching suggestions:", err);
+        }
+      } else {
+        setSuggestions([]);
+        setShowSuggestions(false);
+      }
+    }, 200);
+
+    setTypingTimeout(timeout);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -58,22 +62,17 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, loading }) => {
     }
   };
 
-  const handleSuggestionClick = (suggestion: string) => {
-    setQuery(suggestion);
-    onSearch(suggestion);
+  const handleSuggestionClick = (fundName: string) => {
+    setQuery(fundName);
+    onSearch(fundName);
     setShowSuggestions(false);
-  };
-
-  const handleFocus = () => {
-    if (query.trim().length === 0) {
-      setSuggestions(popularSuggestions.slice(0, 6));
-    }
-    setShowSuggestions(true);
   };
 
   const handleClear = () => {
     setQuery("");
+    setSuggestions([]);
     setShowSuggestions(false);
+    if (onClear) onClear();
   };
 
   return (
@@ -81,15 +80,12 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, loading }) => {
       <form onSubmit={handleSubmit}>
         <div className="relative flex items-center">
           <span className="absolute left-0 pl-4 flex items-center h-full">
-            <Search
-              className="w-10 h-10 text-gray-400 mr-2"
-            />
+            <Search className="w-10 h-10 text-gray-400 mr-2" />
           </span>
           <input
             type="text"
             value={query}
             onChange={(e) => handleInputChange(e.target.value)}
-            onFocus={handleFocus}
             placeholder="Search mutual funds..."
             className="w-full pl-12 pr-12 py-4 bg-black border-2 border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-white/40 focus:ring-2 focus:ring-white/10 transition-all duration-300 text-lg backdrop-blur-sm"
             disabled={loading}
@@ -106,24 +102,18 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, loading }) => {
         </div>
       </form>
 
-      {/* Suggestions Dropdown */}
       {showSuggestions && suggestions.length > 0 && (
         <div className="absolute top-full left-0 right-0 mt-2 bg-black border-2 border-white/20 rounded-xl shadow-2xl backdrop-blur-sm z-50 overflow-hidden">
           <div className="py-2">
-            {query.trim().length === 0 && (
-              <div className="px-4 py-2 text-xs font-medium text-gray-400 uppercase tracking-wider border-b border-white/10">
-                Popular Searches
-              </div>
-            )}
-            {suggestions.map((suggestion, index) => (
+            {suggestions.map((fund, index) => (
               <button
                 key={index}
-                onClick={() => handleSuggestionClick(suggestion)}
+                onClick={() => handleSuggestionClick(fund.schemeName)}
                 className="w-full px-4 py-3 text-left text-white hover:bg-white/5 transition-colors duration-200 flex items-center space-x-3 group"
               >
                 <TrendingUp className="w-4 h-4 text-gray-400 group-hover:text-blue-400 transition-colors" />
                 <span className="group-hover:text-blue-400 transition-colors">
-                  {suggestion}
+                  {fund.schemeName}
                 </span>
               </button>
             ))}

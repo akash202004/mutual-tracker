@@ -7,12 +7,10 @@ import LoadingSpinner from "../components/LoadingSpinner";
 import ErrorMessage from "../components/ErrorMessage";
 import type { MutualFundDetail, SavedFund } from "../types";
 
-// Helper function to safely parse dates
 const parseDate = (dateString: string | undefined): string => {
   if (!dateString) return "N/A";
 
   try {
-    // Handle DD-MM-YYYY format (like "06-05-2008")
     if (dateString.includes("-") && dateString.split("-")[0].length === 2) {
       const [day, month, year] = dateString.split("-");
       const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
@@ -22,7 +20,6 @@ const parseDate = (dateString: string | undefined): string => {
       return date.toLocaleDateString();
     }
 
-    // Handle other date formats
     const date = new Date(dateString);
     if (isNaN(date.getTime())) {
       return "Invalid Date";
