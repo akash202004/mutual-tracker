@@ -36,7 +36,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, onClear, loading }) => 
       if (value.trim().length > 0) {
         try {
           const results = await mutualFundsApi.searchFunds(value);
-          setSuggestions(results.slice(0, 3));
+          setSuggestions(results.slice(0, 2));
           setShowSuggestions(true);
           onSearch(value); 
           inputRef.current?.focus();
