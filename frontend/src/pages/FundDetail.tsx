@@ -1,29 +1,80 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Heart, TrendingUp, Calendar, ArrowLeft, Save } from "lucide-react";
+import {
+  Heart,
+  TrendingUp,
+  TrendingDown,
+  Calendar,
+  ArrowLeft,
+  Save,
+} from "lucide-react";
 import { mutualFundsApi, savedFundsApi } from "../utils/api";
 import { useToast } from "../hooks/useToast";
 import LoadingSpinner from "../components/LoadingSpinner";
 import ErrorMessage from "../components/ErrorMessage";
 import type { MutualFundDetail, SavedFund } from "../types";
 
+// ✅ Recharts imports
+import {
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+  AreaChart,
+  Area,
+} from "recharts";
+
+// Chart data type
+interface ChartDataPoint {
+  date: string;
+  nav: number;
+}
+
+// Performance metrics type
+interface PerformanceMetrics {
+  current: number;
+  change: number;
+  changePercent: number;
+  high: number;
+  low: number;
+  isPositive: boolean;
+}
+
+// ...existing code...
+const CustomTooltip = ({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean;
+  payload?: { value: number }[];
+  label?: string;
+}) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-gray-800 p-3 rounded-lg border border-gray-600 shadow-lg">
+        <p className="text-gray-300 text-sm">{parseDate(label)}</p>
+        <p className="text-green-400 font-semibold">
+          NAV: ₹{payload[0].value.toFixed(2)}
+        </p>
+      </div>
+    );
+  }
+  return null;
+};
+
 const parseDate = (dateString: string | undefined): string => {
   if (!dateString) return "N/A";
-
   try {
     if (dateString.includes("-") && dateString.split("-")[0].length === 2) {
       const [day, month, year] = dateString.split("-");
       const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-      if (isNaN(date.getTime())) {
-        return "Invalid Date";
-      }
+      if (isNaN(date.getTime())) return "Invalid Date";
       return date.toLocaleDateString();
     }
-
     const date = new Date(dateString);
-    if (isNaN(date.getTime())) {
-      return "Invalid Date";
-    }
+    if (isNaN(date.getTime())) return "Invalid Date";
     return date.toLocaleDateString();
   } catch {
     return "Invalid Date";
@@ -37,25 +88,100 @@ const FundDetail: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isSaved, setIsSaved] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [chartPeriod, setChartPeriod] = useState<"7d" | "30d" | "90d" | "1y">(
+    "30d"
+  );
+  const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
+  const [metrics, setMetrics] = useState<PerformanceMetrics | null>(null);
   const { showToast } = useToast();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (schemeCode) {
-      loadFundDetail();
-      checkIfSaved();
+  // Calculate performance metrics
+  const calculateMetrics = (
+    data: ChartDataPoint[]
+  ): PerformanceMetrics | null => {
+    if (data.length === 0) return null;
+
+    const current = data[data.length - 1].nav;
+    const previous = data[0].nav;
+    const change = current - previous;
+    const changePercent = (change / previous) * 100;
+    const high = Math.max(...data.map((d) => d.nav));
+    const low = Math.min(...data.map((d) => d.nav));
+
+    return {
+      current,
+      change,
+      changePercent,
+      high,
+      low,
+      isPositive: change >= 0,
+    };
+  };
+
+  // Prepare chart data based on period with smart sampling
+  const prepareChartData = (
+    fundData: { date: string; nav: string | number }[],
+    period: string
+  ): ChartDataPoint[] => {
+    if (!fundData || fundData.length === 0) return [];
+
+    let filteredData = [...fundData];
+    let sampleRate = 1; // How many days to skip between data points
+
+    // Filter data based on period and set appropriate sampling
+    switch (period) {
+      case "7d":
+        filteredData = fundData.slice(0, 7);
+        sampleRate = 1; // Show every day
+        break;
+      case "30d":
+        filteredData = fundData.slice(0, 30);
+        sampleRate = 1; // Show every day
+        break;
+      case "90d":
+        filteredData = fundData.slice(0, 90);
+        sampleRate = 2; // Show every 2nd day
+        break;
+      case "1y":
+        filteredData = fundData.slice(0, 365);
+        sampleRate = 7; // Show weekly data points (every 7th day)
+        break;
+      default:
+        filteredData = fundData.slice(0, 30);
+        sampleRate = 1;
     }
-  }, [schemeCode]);
 
-  const loadFundDetail = async () => {
+    // Apply sampling to reduce data points for better readability
+    const sampledData = filteredData.filter(
+      (_, index) => index % sampleRate === 0
+    );
+
+    return sampledData
+      .map((item) => ({
+        date: item.date,
+        nav:
+          typeof item.nav === "string" ? parseFloat(item.nav) || 0 : item.nav,
+      }))
+      .reverse(); // Reverse to show chronological order
+  };
+
+  // Load fund details
+  const loadFundDetail = React.useCallback(async () => {
     if (!schemeCode) return;
-
     setLoading(true);
     setError(null);
 
     try {
       const detail = await mutualFundsApi.getFundDetails(schemeCode);
       setFundDetail(detail);
+
+      // Prepare chart data and metrics
+      if (detail.data && detail.data.length > 0) {
+        const chartData = prepareChartData(detail.data, chartPeriod);
+        setChartData(chartData);
+        setMetrics(calculateMetrics(chartData));
+      }
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to load fund details";
@@ -64,23 +190,40 @@ const FundDetail: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [schemeCode, showToast, chartPeriod]);
 
-  const checkIfSaved = async () => {
+  // Check if fund is saved
+  const checkIfSaved = React.useCallback(async () => {
     if (!schemeCode) return;
-
     try {
       const saved = await savedFundsApi.isFundSaved(schemeCode);
       setIsSaved(saved);
     } catch (err) {
       console.error("Error checking if fund is saved:", err);
     }
-  };
+  }, [schemeCode]);
+
+  // Update chart data when period changes
+  useEffect(() => {
+    if (fundDetail?.data && fundDetail.data.length > 0) {
+      const newChartData = prepareChartData(fundDetail.data, chartPeriod);
+      setChartData(newChartData);
+      setMetrics(calculateMetrics(newChartData));
+    }
+  }, [chartPeriod, fundDetail]);
+
+  // Load data on mount
+  useEffect(() => {
+    if (schemeCode) {
+      loadFundDetail();
+      checkIfSaved();
+    }
+  }, [schemeCode, loadFundDetail, checkIfSaved]);
 
   const handleSaveFund = async () => {
     if (!fundDetail || !schemeCode) return;
-
     setSaving(true);
+
     try {
       const token = localStorage.getItem("token");
       if (!token) {
@@ -90,8 +233,6 @@ const FundDetail: React.FC = () => {
       }
 
       const latestNav = fundDetail.data?.[0]?.nav || fundDetail.nav || "0";
-
-      // Extract schemeCode and schemeName with fallbacks
       const fundSchemeCode =
         fundDetail.schemeCode || fundDetail.meta?.scheme_code || schemeCode;
       const fundSchemeName =
@@ -104,7 +245,6 @@ const FundDetail: React.FC = () => {
         savedAt: new Date().toISOString(),
       };
 
-      console.log("Saving fund:", fundToSave);
       await savedFundsApi.saveFund(fundToSave);
 
       setIsSaved(true);
@@ -121,7 +261,6 @@ const FundDetail: React.FC = () => {
 
   const handleRemoveFund = async () => {
     if (!schemeCode) return;
-
     try {
       await savedFundsApi.removeFund(schemeCode);
       setIsSaved(false);
@@ -277,7 +416,158 @@ const FundDetail: React.FC = () => {
         </div>
       </div>
 
-      {/* Historical Data */}
+      {/* Performance Chart */}
+      <div className="bg-black border-2 border-white/20 rounded-xl p-6 backdrop-blur-sm">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <div className="flex items-center space-x-3">
+              <span className="text-4xl font-bold text-white">
+                ₹{latestNav}
+              </span>
+              {metrics && (
+                <div
+                  className={`flex items-center space-x-2 px-3 py-1 rounded-lg ${
+                    metrics.isPositive
+                      ? "bg-green-500/20 text-green-400"
+                      : "bg-red-500/20 text-red-400"
+                  }`}
+                >
+                  {metrics.isPositive ? (
+                    <TrendingUp className="w-4 h-4" />
+                  ) : (
+                    <TrendingDown className="w-4 h-4" />
+                  )}
+                  <span className="font-semibold">
+                    {metrics.isPositive ? "+" : ""}₹{metrics.change.toFixed(2)}{" "}
+                    ({metrics.changePercent.toFixed(2)}%)
+                  </span>
+                </div>
+              )}
+            </div>
+            <p className="text-gray-400 mt-2">As of {parseDate(navDate)}</p>
+          </div>
+
+          {/* Period Selector */}
+          <div className="flex space-x-2">
+            {(["7d", "30d", "90d", "1y"] as const).map((period) => (
+              <button
+                key={period}
+                onClick={() => setChartPeriod(period)}
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  chartPeriod === period
+                    ? "bg-blue-500 text-white"
+                    : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                }`}
+              >
+                {period.toUpperCase()}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Professional Chart */}
+        {chartData.length > 0 && (
+          <div className="bg-gray-900/50 rounded-xl p-4 border border-gray-700/50">
+            <ResponsiveContainer width="100%" height={400}>
+              <AreaChart
+                data={chartData}
+                margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+              >
+                <defs>
+                  <linearGradient id="navGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10B981" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#10B981" stopOpacity={0.05} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="#374151"
+                  opacity={0.3}
+                />
+                <XAxis
+                  dataKey="date"
+                  tickFormatter={(value) => {
+                    const date = parseDate(value);
+                    return date.split("/").slice(0, 2).join("/");
+                  }}
+                  stroke="#9CA3AF"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={{ stroke: "#4B5563" }}
+                />
+                <YAxis
+                  domain={["dataMin - 1", "dataMax + 1"]}
+                  tickFormatter={(value) => `₹${value.toFixed(0)}`}
+                  stroke="#9CA3AF"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={{ stroke: "#4B5563" }}
+                />
+                <Tooltip content={<CustomTooltip />} />
+                <Area
+                  type="monotone"
+                  dataKey="nav"
+                  stroke="#10B981"
+                  strokeWidth={3}
+                  fill="url(#navGradient)"
+                  dot={{ fill: "#10B981", strokeWidth: 2, r: 4 }}
+                  activeDot={{
+                    r: 6,
+                    fill: "#10B981",
+                    stroke: "#065F46",
+                    strokeWidth: 2,
+                  }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+
+        {/* Performance Metrics */}
+        {metrics && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+            <div className="bg-gray-900/50 p-4 rounded-xl border border-gray-700/50">
+              <div className="text-sm text-gray-400 mb-1">Current NAV</div>
+              <div className="text-xl font-bold text-green-400">
+                ₹{metrics.current.toFixed(2)}
+              </div>
+            </div>
+            <div className="bg-gray-900/50 p-4 rounded-xl border border-gray-700/50">
+              <div className="text-sm text-gray-400 mb-1">
+                {chartPeriod.toUpperCase()} Change
+              </div>
+              <div
+                className={`text-xl font-bold ${
+                  metrics.isPositive ? "text-green-400" : "text-red-400"
+                }`}
+              >
+                {metrics.isPositive ? "+" : ""}₹{metrics.change.toFixed(2)}
+              </div>
+              <div
+                className={`text-sm ${
+                  metrics.isPositive ? "text-green-400" : "text-red-400"
+                }`}
+              >
+                ({metrics.changePercent.toFixed(2)}%)
+              </div>
+            </div>
+            <div className="bg-gray-900/50 p-4 rounded-xl border border-gray-700/50">
+              <div className="text-sm text-gray-400 mb-1">High</div>
+              <div className="text-xl font-bold text-blue-400">
+                ₹{metrics.high.toFixed(2)}
+              </div>
+            </div>
+            <div className="bg-gray-900/50 p-4 rounded-xl border border-gray-700/50">
+              <div className="text-sm text-gray-400 mb-1">Low</div>
+              <div className="text-xl font-bold text-orange-400">
+                ₹{metrics.low.toFixed(2)}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Historical Data Table */}
       {fundDetail.data && fundDetail.data.length > 0 && (
         <div className="bg-black border-2 border-white/20 rounded-xl p-6 backdrop-blur-sm">
           <h2 className="text-xl font-semibold text-white mb-6">

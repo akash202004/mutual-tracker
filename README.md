@@ -27,6 +27,7 @@ frontend/     # React client app
 ## Getting Started
 
 ### Backend
+
 1. Install dependencies:
    ```bash
    npm install
@@ -51,6 +52,7 @@ frontend/     # React client app
    ```
 
 ### Frontend
+
 1. Install dependencies:
    ```bash
    npm install
@@ -70,11 +72,13 @@ frontend/     # React client app
 ## API Endpoints
 
 ### User
+
 - `POST /api/users/register` - Register
 - `POST /api/users/login` - Login
 - `GET /api/users/profile` - Get profile (auth required)
 
 ### Saved Funds
+
 - `GET /api/saved-funds/` - List saved funds (auth required)
 - `POST /api/saved-funds/` - Save a fund (auth required)
 - `GET /api/saved-funds/check/:schemeCode` - Check if fund is saved
