@@ -2,6 +2,8 @@
 
 A full-stack web application to discover, track, and manage mutual fund investments. Built with React, TypeScript, Vite (frontend) and Express, MongoDB (backend).
 
+![image](./Mutualtracker.png)
+
 ## Features
 
 - Search and view mutual funds with real-time NAV data
